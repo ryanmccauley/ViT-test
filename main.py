@@ -8,25 +8,20 @@ model_name = "google/vit-base-patch16-224"
 extractor = ViTImageProcessor.from_pretrained(model_name)
 model = ViTModel.from_pretrained(model_name)
 
-def extract_embeddings(model: torch.nn.Module):
-    device = model.device
+def extract_embeddings(image):
+    inputs = extractor(images=image, return_tensors="pt").to(model.device)
 
-    def pp(image):
-        inputs = extractor(images=image, return_tensors="pt").to(device)
+    with torch.no_grad():
+        outputs = model(**inputs)
+        embeddings = outputs.last_hidden_state[:, 0].cpu()  
 
-        with torch.no_grad():
-            outputs = model(**inputs)
-            embeddings = outputs.last_hidden_state[:, 0].cpu()  
-
-        return embeddings
-
-    return pp
+    return embeddings
 
 model.to("cuda" if torch.cuda.is_available() else "cpu")
 
 def get_embedding(image_path):
   image = Image.open(image_path).convert("RGB")
-  embeddings = extract_embeddings(model)(image)
+  embeddings = extract_embeddings(image)
 
   return { "path": image_path, "embeddings": embeddings }
 
