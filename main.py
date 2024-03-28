@@ -22,9 +22,7 @@ def extract_embeddings(model: torch.nn.Module):
 
     return pp
 
-batch_size = 24
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model.to(device)
+model.to("cuda" if torch.cuda.is_available() else "cpu")
 
 def get_embedding(image_path):
   image = Image.open(image_path).convert("RGB")
